@@ -22,7 +22,8 @@ class Train
   end
 
   def hook_carriage(carriage)
-    if @speed == 0 && !@carriages.include?(carriage) && !carriage.attached?
+    return unless attachable_carriage?(carriage)
+    return if @speed == 0 || !@carriages.include?(carriage) || !carriage.attached?
       @carriages << carriage
       carriage.attach
     end

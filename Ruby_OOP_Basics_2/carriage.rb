@@ -1,9 +1,8 @@
 class Carriage
 
-  attr_reader :type, :attached
+  attr_reader :attached
 
-  def initialize(type)
-    @type = type
+  def initialize
     @attached = false
   end
 
@@ -19,14 +18,14 @@ class Carriage
     if @attached == true
       return true
     else
-  	  return false
-  	end
+      return false
+    end
   end
 # эти методы вынесены в protected, чтобы ограничить возможность изменения параметра attached напрямую
   protected
 
   def get_attached!
-  	@attached = true
+    @attached = true
   end
 
   def get_unattached!

@@ -8,370 +8,349 @@ require_relative 'cargoCarriage'
 require_relative 'station'
 require_relative 'route'
 
-@main_menu = <<~questions
-	------------------------------------------------------------
-	|             Что бы Вы хотели сделать ?                   |
-	|                                                          |
-	| Введите "поезд", если хотите создать поезд               |
-	| Введите "станция", если хотите создать станцию           |
-	| Введите "маршрут", если хотите создать маршрут           |
-	|                                                          |
-	| Введите "все поезда", если хотите увидеть все поезде     |
-	| Введите "все станции", если хотите увидеть все станции   |
-	| Введите "все маршруты", если хотите увидеть все маршруты |
-	|                                                          |
-	| Введите "выход", если хотите выйти из программы          |
-	------------------------------------------------------------
-questions
+class Main
+  MAIN_MENU = <<~MAIN_QUESTIONS
+    ------------------------------------------------------------
+    |             Что бы Вы хотели сделать ?                   |
+    |                                                          |
+    |   Введите "1", если хотите создать поезд                 |
+    |   Введите "2", если хотите создать станцию               |
+    |   Введите "3", если хотите создать маршрут               |
+    |                                                          |
+    |   Введите "4", если хотите увидеть все поезда            |
+    |   Введите "5", если хотите увидеть все станции           |
+    |   Введите "6", если хотите увидеть все маршруты          |
+    |                                                          |
+    |   Введите "0", если хотите выйти из программы            |
+    ------------------------------------------------------------
+  MAIN_QUESTIONS
 
-common_part = <<~common_part
-	------------------------------------------------------------
-	|                                                          |
-	|               Привет, дорогой пользователь!              |
-	|            Приветствую тебя в программе "ЖелДор"         |
-	|                                                          |
-	------------------------------------------------------------
-common_part
+  WELCOME_MENU = <<~WELCOME_WORDS
+    ------------------------------------------------------------
+    |                                                          |
+    |               Привет, дорогой пользователь!              |
+    |            Приветствую тебя в программе "ЖелДор"         |
+    |                                                          |
+    ------------------------------------------------------------
+  WELCOME_WORDS
 
-puts common_part
-# Экран основных действий программы
-def main_view
-  
-  puts @main_menu
-  answer = gets.chomp
-  answer.downcase!
+  TRAIN_NUMBER_MENU = <<~TRAIN_NUMBER
+    ------------------------------------------------------------
+    |                  Вы решили создать поезд                 |
+    |   Введите номер поезда:                                  |
+    ------------------------------------------------------------
+  TRAIN_NUMBER
 
-  case answer
-    when "поезд"
-      train_view
-    when "станция"
-      station_view
-    when "маршрут"
-      route_view
-    when "все поезда"
-      all_trains_view
-    when "все станции"
-      alL_stations_view
-    when "все маршруты"
-      all_routes_view
-    when "выход"
-      puts "Спасибо за использование программы 'ЖелДор'."
-      exit
-    else
-      puts "!! Некорректный ввод. !!"
-      main_view
+  TRAIN_TYPE_MENU = <<~TRAIN_TYPE
+    ------------------------------------------------------------
+    |               Какой поезд вы хотите создать?             |
+    |   Введите "1", если хотите создать грузовой              |
+    |   Введите "2", если хотите создать пассажирский          |
+    ------------------------------------------------------------
+  TRAIN_TYPE
+
+  TRAIN_ACTIONS_MENU = <<~TRAIN_ACTIONS
+    ------------------------------------------------------------
+    |        Какие действия с поездом Вы хотите сделать?       |
+    |   Введите "1", если хотите добавить/отцепить вагон       |
+    |   Введите "2", если хотите присвоить маршрут             |
+    |   Введите "3", если хотите переместить поезд             |
+    |                                                          |
+    |   Введите "4", если хотите вернуться в главное меню      |
+    ------------------------------------------------------------
+  TRAIN_ACTIONS
+
+  CHANGE_CARRIAGES_MENU = <<~CHANGE_CARRIAGES
+    ------------------------------------------------------------
+    |             Хотите добавить/отцепить вагоны?             |
+    |   Введите "1", если хотите добавить вагон                |
+    |   Введите "2", если хотите отцепить вагон                |
+    |                                                          |
+    |   Введите "3", если хотите вернуться в меню действий     |
+    ------------------------------------------------------------
+  CHANGE_CARRIAGES
+
+  TRAIN_MOVE_MENU = <<~TRAIN_MOVE
+    ------------------------------------------------------------
+    |           В какую сторону двигаться по маршруту?         |
+    |   Введите "1", если хотите двигаться вперед              |
+    |   Введите "2", если хотите двигаться назад               |
+    ------------------------------------------------------------
+  TRAIN_MOVE
+
+  STATION_MENU = <<~STATION_NAME
+    ------------------------------------------------------------
+    |                  Вы решили создать станцию               |
+    |   Введите название станции:                              |
+    ------------------------------------------------------------
+  STATION_NAME
+
+  STATION_DEPARTURE_MENU = <<~STATION_DEPARTUE
+    ------------------------------------------------------------
+    |                  Вы решили создать маршрут               |
+    |   Выберите станцию отправления:                          |
+    ------------------------------------------------------------
+  STATION_DEPARTUE
+
+  STATION_ARRIVAL_MENU = <<~STATION_ARRIVAL
+    ------------------------------------------------------------
+    |                  Вы решили создать маршрут               |
+    |   Выберите станцию прибытия:                             |
+    ------------------------------------------------------------
+  STATION_ARRIVAL
+
+  CHANGE_STATIONS_MENU = <<~CHANGE_STATIONS
+    ------------------------------------------------------------
+    |                  Вы решили создать маршрут               |
+    |   Введите "1", если хотите включить станцию              |
+    |   Введите "2", если хотите исключить станцию             |
+    |   Введите "3", чтобы посмотреть станции маршрута         |
+    |                                                          |
+    |   Введите "4", если хотите вернуться в главное меню      |
+    ------------------------------------------------------------
+  CHANGE_STATIONS
+  # инициации создания экземпляра класса
+  def initialize
+    @trains = []
+    @stations = []
+    @routes = []
   end
-end 
-# Экран создания поезда
-def train_view
-  # Создаем переменную до вопроса пользователю, чтобы можно было добавить логику на проверку этой переменной и в дальнейшем
-  # не повторить запрос номера, если некорректно введен тип
-  @answer_number ||= ''
-  train_number_menu = <<~train_number_menu
-	------------------------------------------------------------
-	|                  Вы решили создать поезд                 |
-	| Введите номер поезда:                                    |
-	------------------------------------------------------------
-  train_number_menu
-  
-  if @answer_number.empty?
-  	puts train_number_menu
-    @answer_number = gets.chomp
+  # запуск программы
+  def run
+    puts WELCOME_MENU
+    main_view
   end
-
-  train_type_menu = <<~train_type_menu
-	------------------------------------------------------------
-	|               Какой поезд вы хотите создать?             |
-	| Введите "грузовой", если хотите создать грузовой         |
-	| Введите "пассажирский", если хотите создать пассажирский |
-	------------------------------------------------------------
-  train_type_menu
-
-  puts train_type_menu
-  answer_type = gets.chomp
-  answer_type.downcase!
-
-  case answer_type
-    when "грузовой"
-      @trains << CargoTrain.new(@answer_number)
-    when "пассажирский"
-      @trains << PassengerTrain.new(@answer_number)
-    else
-      puts "!! Некорректный тип поезда !!"
-      train_view
-  end
-
-  @answer_number = ''
-  @train = @trains.last
-
-  train_actions
-end
-# метод с действиями с поездом
-def train_actions
-  train_actions_menu = <<~train_actions_menu
-	------------------------------------------------------------
-	|        Какие действия с поездом Вы хотите сделать?       |
-	| Введите "вагоны", если хотите добавить/отцепить вагон    |
-	| Введите "маршрут", если хотите присвоить маршрут         |
-	| Введите "двигаться", если хотите переместить поезд       |
-	|                                                          |
-	| Введите "меню", если хотите вернуться в главное меню     |
-	------------------------------------------------------------
-  train_actions_menu
-
-  puts train_actions_menu
-  train_action = gets.chomp
-  train_action.downcase!
-
-  case train_action
-    when "вагоны"
-      change_carriages
-    when "маршрут"
-      train_get_route
-    when "двигаться"
-      train_move
-    when "меню"
-      main_view
-    else
-      puts "!! Некорректный ввод !!"
-      train_actions
-  end
-end
-# метод, вызывающий меню добавления/отцепления
-def change_carriages
-  change_carriages_menu = <<~change_carriages_menu
-	------------------------------------------------------------
-	|             Хотите добавить/отцепить вагоны?             |
-	| Введите "добавить", если хотите добавить вагон           |
-	| Введите "отцепить", если хотите отцепить вагон           |
-	|                                                          |
-	| Введите "действия", если хотите вернуться в меню действий|
-	------------------------------------------------------------
-  change_carriages_menu
-
-  puts change_carriages_menu
-  carriages_answer = gets.chomp
-  carriages_answer.downcase!
-
-  case carriages_answer
-    when "добавить"
-      carriage = CargoCarriage.new if @train.type == :cargo
-      carriage = PassengerCarriage.new if @train.type == :passenger
-      @train.hook_carriage(carriage)
-      puts "Вагон #{carriage} добавлен к поезду #{@train.number}"
-    when "отцепить"
-      return puts "У поезда нет вагонов" if @train.carriages.empty?
-      puts "Выберите вагон, который необходимо отцепить:"
-      @train.carriages.each { |carriage| puts "'#{@train.carriages.index(carriage)}' если нужно отцепить вагон #{carriage}"}
-      carriage_answer = @train.carriages[gets.to_i]
-      @train.unhook_carriage(carriage_answer)
-      puts "Вагон #{carriage_answer} отцеплен от поезда #{@train.number}"
-    when "действия"
-      train_actions
-    else
-      "!! Некорректный ввод !!"
-      change_carriages
-  end
-
-  change_carriages
-end
-# метод для задания маршрута
-def train_get_route
-  if @routes.empty?
-    puts "Сначала создайте маршрут"
-    train_actions
-  else
-    puts "Выберите маршрут:"
-    @routes.each { |route| puts "'#{@routes.index(route)}' если хотите выбрать маршрут #{route.stations[0].name} -> #{route.stations[-1].name}" }
-    route_answer = @routes[gets.to_i]
-    @train.get_route(route_answer)
-    puts "Поезд начал движение по маршруту '#{route_answer.stations[0].name}' -> '#{route_answer.stations[-1].name}'"
-    train_actions
-  end
-end
-# методя для перемещения поезда по маршруту
-def train_move
-  train_move_menu = <<~train_move_menu
-	------------------------------------------------------------
-	|           В какую сторону двигаться по маршруту?         |
-	| Введите "вперед", если хотите двигаться вперед           |
-	| Введите "назад", если хотите двигаться назад             |
-	------------------------------------------------------------
-  train_move_menu
-
-  if @train.route.nil? 
-  	puts "Сначала необходимо выбрать маршрут"
-  	train_actions
-  end
-
-  puts train_move_menu
-  train_move_action = gets.chomp
-  train_move_action.downcase!
-
-  case train_move_action
-    when "вперед"
-      if @train.next_station.nil?
-      	puts "Поезд находится на станции прибытия"
+  # методы с зоной видимости private, чтобы не было возможности вызывать методы напрямую
+  private
+  # экран основных действий программы
+  def main_view
+    loop do
+    puts MAIN_MENU
+    answer = gets.chomp
+      case answer
+      when "1"
+        train_view
+      when "2"
+        station_view
+      when "3"
+        route_view
+      when "4"
+        all_trains_view
+      when "5"
+        alL_stations_view
+      when "6"
+        all_routes_view
+      when "0"
+        puts "Спасибо за использование программы 'ЖелДор'."
+        break
       else
-       @train.go_next_station
-      	puts "Поезд прибыл на станцию #{@train.current_station.name}"
+        puts "!! Некорректный ввод. !!"
       end
-    when "назад"
-      if @train.previous_station.nil?
-      	puts "Поезд находится на станции отправления"
+    end
+  end 
+  # экран создания поезда
+  def train_view   
+    puts TRAIN_NUMBER_MENU
+    answer_number = gets.chomp
+
+    loop do
+      puts TRAIN_TYPE_MENU
+      answer_type = gets.chomp
+      case answer_type
+      when "1"
+        @trains << CargoTrain.new(answer_number)
+        break
+      when "2"
+        @trains << PassengerTrain.new(answer_number)
+        break
       else
-       @train.go_previous_station
-      	puts "Поезд прибыл на станцию #{@train.current_station.name}"
+        puts "!! Некорректный тип поезда !!"
+      end
+    end
+
+    train_actions(@trains.last)
+  end
+  # метод с действиями с поездом
+  def train_actions(train)
+    loop do
+      puts TRAIN_ACTIONS_MENU
+      train_action = gets.chomp
+      case train_action
+      when "1"
+        change_carriages(train)
+      when "2"
+        train_get_route(train)
+      when "3"
+        train_move(train)
+      when "4"
+        break
+      else
+        puts "!! Некорректный ввод !!"
+      end
+    end
+  end
+  # метод, вызывающий меню добавления/отцепления
+  def change_carriages(train)
+    loop do
+      puts CHANGE_CARRIAGES_MENU
+      carriages_answer = gets.chomp
+      case carriages_answer
+      when "1"
+        carriage = CargoCarriage.new if train.type == :cargo
+        carriage = PassengerCarriage.new if train.type == :passenger
+        train.hook_carriage(carriage)
+        puts "Вагон #{carriage} добавлен к поезду #{train.number}"
+      when "2"
+        return puts "У поезда нет вагонов" if train.carriages.empty?
+        puts "Выберите вагон, который необходимо отцепить:"
+        train.carriages.each { |carriage| puts "'#{train.carriages.index(carriage)}' если нужно отцепить вагон #{carriage}"}
+        carriage_answer = train.carriages[gets.to_i]
+        train.unhook_carriage(carriage_answer)
+        puts "Вагон #{carriage_answer} отцеплен от поезда #{train.number}"
+      when "3"
+        break
+      else
+        "!! Некорректный ввод !!"
+      end
+    end
+  end
+  # метод для задания маршрута
+  def train_get_route(train)
+    if @routes.empty?
+      puts "Сначала создайте маршрут"
+    else
+      puts "Выберите маршрут:"
+      @routes.each { |route| puts "'#{@routes.index(route)}' если хотите выбрать маршрут #{route.stations[0].name} -> #{route.stations[-1].name}" }
+      route_answer = @routes[gets.to_i]
+      train.get_route(route_answer)
+      puts "Поезд начал движение по маршруту '#{route_answer.stations[0].name}' -> '#{route_answer.stations[-1].name}'"
+    end
+  end
+  # методя для перемещения поезда по маршруту
+  def train_move(train)
+    if train.route.nil? 
+      puts "Сначала необходимо выбрать маршрут"
+      train_actions
+    end
+
+    puts TRAIN_MOVE_MENU
+    train_move_action = gets.chomp
+
+    case train_move_action
+    when "1"
+      if train.next_station.nil?
+        puts "Поезд находится на станции прибытия"
+      else
+        train.go_next_station
+        puts "Поезд прибыл на станцию #{train.current_station.name}"
+      end
+    when "2"
+      if train.previous_station.nil?
+        puts "Поезд находится на станции отправления"
+      else
+        train.go_previous_station
+        puts "Поезд прибыл на станцию #{train.current_station.name}"
       end
     else
       puts "!! Некорректный ввод !!"
+    end
   end
- 
-  train_actions
-end
-# Экран создания станции
-def station_view
-  station_menu = <<~station_menu
-	------------------------------------------------------------
-	|                  Вы решили создать станцию               |
-	| Введите название станции:                                |
-	------------------------------------------------------------
-  station_menu
-
-  puts station_menu
-  station_name = gets.chomp
-  @stations << Station.new(station_name)
-
-  main_view
-end
-# Экран создания маршрута
-def route_view
-
-  @station_departure ||= nil
-  @station_arrival ||= nil
-  
-  station_departure_menu = <<~station_departure_menu
-	------------------------------------------------------------
-	|                  Вы решили создать маршрут               |
-	| Выберите станцию отправления:                            |
-	------------------------------------------------------------
-  station_departure_menu
-  
-  if @station_departure.nil?
-    puts station_departure_menu
-    @stations.each { |station| puts "#{station.name}"}
-    puts "--------------"
-    station_departure_name = gets.chomp
-    @stations.each { |station| @station_departure = station if station.name == station_departure_name}
+  # Экран создания станции
+  def station_view
+    puts STATION_MENU
+    station_name = gets.chomp
+    @stations << Station.new(station_name)
   end
-
-  if @station_departure.nil?
-  	puts "!! Некорректная станция отправления !!"
-  	route_view
-  end
-
-  station_arrival_menu = <<~station_arrival_menu
-	------------------------------------------------------------
-	|                  Вы решили создать маршрут               |
-	| Выберите станцию прибытия:                               |
-	------------------------------------------------------------
-  station_arrival_menu
-
-  puts station_arrival_menu
-  @stations.each { |station| puts "#{station.name}"}
-  puts "--------------"
-  station_arrival_name = gets.chomp
-  @stations.each { |station| @station_arrival = station if station.name == station_arrival_name}
-
-  if @station_arrival.nil?
-  	puts "!! Некорректная станция прибытия !!"
-  	route_view
-  end
-  
-  @route = Route.new(@station_departure, @station_arrival)
-  @routes << @route
-
-  puts "Создан маршрут: #{@station_departure.name} -> #{@station_arrival.name}"
-
-  @station_departure = nil
-  @station_arrival = nil
-
-  change_stations_view
-end
-# Метод по добавлению станции в маршрут
-def change_stations_view
-  change_stations_menu = <<~change_stations_menu
-	------------------------------------------------------------
-	|                  Вы решили создать маршрут               |
-	| Введите "исключить", если хотите исключить станцию       |
-	| Введите "включить", если хотите включить станцию         |
-	| Введите "станции", чтобы посмотреть станции маршрута     |
-	|                                                          |
-	| Введите "меню", если хотите вернуться в главное меню     |
-	------------------------------------------------------------
-  change_stations_menu
-
-  puts change_stations_menu
-  change_stations_answer = gets.chomp
-  change_stations_answer.downcase!
-
-  case change_stations_answer
-    when "включить"
-      puts "Выберите станцию:"
-      @stations.each { |station| puts "  " + station.name}
-      add_station_name = gets.chomp
-      @stations.each { |station| @add_station = station if station.name == add_station_name}
-      if @route.add_station(@add_station).nil?
-        puts "Нельзя добавить станцию в маршрут" 
+  # Экран создания маршрута
+  def route_view
+    station_departure = nil
+    station_arrival = nil
+    
+    loop do
+      puts STATION_DEPARTURE_MENU
+      @stations.each { |station| puts "#{station.name}"}
+      puts "--------------"
+      station_departure_name = gets.chomp
+      @stations.each { |station| station_departure = station if station.name == station_departure_name}
+      if station_departure == nil
+        puts "!! Некорректная станция отправления !!"
+      else
+        break
       end
-      change_stations_view
-    when "исключить"
-      puts "Выберите станцию:"
-      @stations.each { |station| puts "  " + station.name}
-      delete_station_name = gets.chomp
-      @stations.each { |station| @delete_station = station if station.name == delete_station_name}
-      if @route.delete_station(@delete_station).nil?
-        puts "Нельзя исключить станцию из маршрута" 
+    end
+
+    loop do
+      puts STATION_ARRIVAL_MENU
+      @stations.each { |station| puts "#{station.name}"}
+      puts "--------------"
+      station_arrival_name = gets.chomp
+      @stations.each { |station| station_arrival = station if station.name == station_arrival_name}
+      if station_arrival == nil
+        puts "!! Некорректная станция прибытия !!"
+      else
+        break
       end
-      change_stations_view
-    when "станции"
-      @route.show_stations
-      change_stations_view
-    when "меню"
-      main_view
-    else
-      puts "!! Некорректный ввод !!"
-      change_stations_view
+    end
+   
+    @routes << Route.new(station_departure, station_arrival)
+
+    puts "Создан маршрут: #{station_departure.name} -> #{station_arrival.name}"
+
+    change_stations_view(@routes.last)
   end
-end 
-# Экран вывода всех поездов
-def all_trains_view
-  puts "Список созданных поездов: "
-  @trains.each { |train| puts " #{train.number}. Тип: #{train.type}. Количество вагонов: #{train.carriages.count}" }
-
-  main_view
-end
-# Экран вывода всех станций
-def alL_stations_view
-  puts "Список созданных станция: "
-  @stations.each do |station| 
-    puts " #{station.name}"
-    station.trains.each { |train| puts "  поезд: #{train.number}" }
+  # Метод по добавлению станции в маршрут
+  def change_stations_view(route)
+    for_delete_station = nil
+    for_add_station = nil
+    
+    loop do
+      puts CHANGE_STATIONS_MENU
+      change_stations_answer = gets.chomp
+      case change_stations_answer
+      when "1"
+        puts "Выберите станцию:"
+        @stations.each { |station| puts "  " + station.name}
+        add_station_name = gets.chomp
+        @stations.each { |station| for_add_station = station if station.name == add_station_name}
+        if route.add_station(for_add_station).nil?
+          puts "Нельзя добавить станцию в маршрут" 
+        end
+      when "2"
+        puts "Выберите станцию:"
+        @stations.each { |station| puts "  " + station.name}
+        delete_station_name = gets.chomp
+        @stations.each { |station| for_delete_station = station if station.name == delete_station_name}
+        if route.delete_station(for_delete_station).nil?
+          puts "Нельзя исключить станцию из маршрута" 
+        end
+      when "3"
+        route.show_stations
+      when "4"
+        break
+      else
+        puts "!! Некорректный ввод !!"
+      end
+    end
+  end 
+  # Экран вывода всех поездов
+  def all_trains_view
+    puts "Список созданных поездов: "
+    @trains.each { |train| puts " #{train.number}. Тип: #{train.type}. Количество вагонов: #{train.carriages.count}" }
   end
-
-  main_view
+  # Экран вывода всех станций
+  def alL_stations_view
+    puts "Список созданных станция: "
+    @stations.each do |station| 
+      puts " #{station.name}"
+      station.trains.each { |train| puts "  поезд: #{train.number}" }
+    end
+  end
+  # Экран вывода всех маршрутов
+  def all_routes_view
+    puts "Список созданных маршрутов: "
+    @routes.each do |route| 
+      puts "Маршрут:  #{route.stations[0].name} -> #{route.stations[-1].name}"
+      route.show_trains
+    end
+  end
 end
-# Экран вывода всех маршрутов
-def all_routes_view
-  puts "Список созданных маршрутов: "
-  @routes.each { |route| puts " #{route.stations[0].name} -> #{route.stations[-1].name}" }
-
-  main_view
-end
-
-# Запуск программы
-@trains = []
-@stations = []
-@routes = []
-
-main_view
