@@ -4,16 +4,6 @@ class PassengerTrain < Train
     super
   end
 
-  def hook_carriage(carriage)
-    return if carriage.type != :passenger
-    super
-  end
-
-  def unhook_carriage(carriage)
-    return if carriage.type != :passenger
-    super
-  end
-
   def attachable_carriage?(carriage)
     carriage.is_a?(PassengerCarriage)
   end

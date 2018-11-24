@@ -23,16 +23,15 @@ class Train
 
   def hook_carriage(carriage)
     return unless attachable_carriage?(carriage)
-    return if @speed == 0 || !@carriages.include?(carriage) || !carriage.attached?
-      @carriages << carriage
-      carriage.attach
-    end
+    return if @speed != 0 || carriage.attached? || @carriages.include?(carriage)
+    @carriages << carriage
+    carriage.attach!
   end
 
   def unhook_carriage(carriage)
     if @speed == 0 && @carriages.size > 0 && carriage.attached?
       @carriages.delete(carriage)
-      carriage.unattach
+      carriage.detach!
     end
   end
 

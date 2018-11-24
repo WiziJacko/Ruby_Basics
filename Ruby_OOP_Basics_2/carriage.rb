@@ -6,30 +6,16 @@ class Carriage
     @attached = false
   end
 
-  def attach
-    get_attached! if @attached == false
+  def attach!
+    @attached = true if !attached?
   end
 
-  def unattach
-    get_unattached! if @attached == true
+  def detach!
+    @attached = false if attached?
   end
 
   def attached?
-    if @attached == true
-      return true
-    else
-      return false
-    end
-  end
-# эти методы вынесены в protected, чтобы ограничить возможность изменения параметра attached напрямую
-  protected
-
-  def get_attached!
-    @attached = true
-  end
-
-  def get_unattached!
-    @attached = false
+    @attached
   end
 
 end
