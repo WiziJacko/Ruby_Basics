@@ -209,12 +209,12 @@ class Main
     else
       puts 'Выберите маршрут:'
       @routes.each do |route| 
-        puts "'#{@routes.index(route)}' если хотите выбрать маршрут #{route.stations[0].name} -> #{route.stations[-1].name}"
+        puts "'#{@routes.index(route)}' если хотите выбрать маршрут #{route.name}"
       end
       route_answer = @routes[gets.to_i]
       return not_correct_input if route_answer.nil?
       train.get_route(route_answer)
-      puts "Поезд начал движение по маршруту '#{route_answer.stations[0].name}' -> '#{route_answer.stations[-1].name}'"
+      puts "Поезд начал движение по маршруту '#{route_answer.name}'"
     end
   end
   # методя для перемещения поезда по маршруту
