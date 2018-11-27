@@ -1,0 +1,95 @@
+require_relative 'company'
+require_relative 'instance_counter'
+
+class Train
+
+  include Company
+  include InstanceCounter
+
+  attr_reader :speed, :carriages, :number, :type, :route
+
+  @@instances = []
+  
+  class << self
+    def all_instances
+      @@instances.each { |instance| puts instance }
+    end
+
+    def find(number)
+      @@instances.bsearch { |instance| instance.number == number }
+    end
+  end
+
+  def initialize(number, type)
+    @number = number
+    @type = type
+    @speed = 0
+    @carriages = []
+    @@instances << self
+    register_instance
+  end
+
+  def speed_up(value)
+    @speed += value
+  end
+
+  def speed_down(value)
+    if @speed - value < 0 
+      @speed = 0
+    else
+      @speed -= value
+    end
+  end
+
+  def hook_carriage(carriage)
+    return unless attachable_carriage?(carriage)
+    return if @speed != 0 || carriage.attached? || @carriages.include?(carriage)
+    @carriages << carriage
+    carriage.attach!
+  end
+
+  def unhook_carriage(carriage)
+    if @speed == 0 && @carriages.size > 0 && carriage.attached?
+      @carriages.delete(carriage)
+      carriage.detach!
+    end
+  end
+
+  def get_route(route)
+    @route = route
+    @current_station = 0
+    @route.stations[0].train_in(self)
+  end
+
+  def current_station
+    return if @route.nil?
+    @route.stations[@current_station]
+  end
+
+  def previous_station
+    return if @route.nil?
+    if @current_station != 0
+      @route.stations[@current_station - 1]
+    end
+  end
+
+  def next_station
+    return if @route.nil?
+    @route.stations[@current_station + 1]
+  end
+
+  def go_next_station
+    return if next_station.nil?
+    current_station.train_out(self)
+    next_station.train_in(self)
+    @current_station += 1
+  end
+
+  def go_previous_station
+    return if previous_station.nil?
+    current_station.train_out(self)
+    previous_station.train_in(self)
+    @current_station -= 1
+  end
+
+end
