@@ -7,20 +7,17 @@ module InstanceCounter
 
   module ClassMethods
 
-    attr_accessor :count
+    attr_accessor :instances
 
-    def instances
-      puts "Количество экземпляров класса #{self}: #{self.count}"
-    end
   end
 
   module InstanceMethods
 
-  protected
+    protected
 
     def register_instance
-      self.class.count ||= 0
-      self.class.count += 1
+      self.class.instances ||= 0
+      self.class.instances += 1
     end
   end
 end

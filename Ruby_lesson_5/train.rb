@@ -8,15 +8,15 @@ class Train
 
   attr_reader :speed, :carriages, :number, :type, :route
 
-  @@instances = []
+  @@instances = {}
   
   class << self
-    def all_instances
-      @@instances.each { |instance| puts instance }
+    def all
+      @@instances
     end
 
     def find(number)
-      @@instances.bsearch { |instance| instance.number == number }
+      @@instances[number]
     end
   end
 
@@ -25,7 +25,7 @@ class Train
     @type = type
     @speed = 0
     @carriages = []
-    @@instances << self
+    @@instances[number] = self
     register_instance
   end
 

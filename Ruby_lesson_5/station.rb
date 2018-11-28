@@ -6,16 +6,16 @@ class Station
 
   attr_reader :name, :trains
 
-  @@instances = []
+  @@instances = {}
 
-  def self.all_instances
-    @@instances.each { |instance| puts instance }
+  def self.all
+    @@instances
   end
 
   def initialize(name)
     @name = name
     @trains = []
-    @@instances << self
+    @@instances[name] = self
     register_instance
   end
 
