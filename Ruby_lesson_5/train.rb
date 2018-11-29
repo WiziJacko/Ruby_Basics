@@ -12,7 +12,7 @@ class Train
   
   class << self
     def all
-      @@instances
+      @@instances.values
     end
 
     def find(number)

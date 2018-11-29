@@ -6,7 +6,7 @@ class Station
 
   attr_reader :name, :trains
 
-  @@instances = {}
+  @@instances = []
 
   def self.all
     @@instances
