@@ -6,6 +6,10 @@ class Station
 
   attr_reader :name, :trains
 
+  NOT_ZERO_LENGTH_NAME_ERROR = "Название не может быть пустым"
+  STATION_EXISTS_ERROR = "Такая станция уже существует"
+  NOT_STRING_CLASS_ERROR = "Название может быть только объектом класса String"
+
   @@instances = {}
 
   class << self
@@ -45,11 +49,16 @@ class Station
     @trains.delete(train)
   end
 
+  def to_s
+    name
+  end
+
   protected
 
   def validate!
-    raise "Название не может быть пустым" if @name.length == 0
-    raise "Такая станция уже существует" if Station.find(@name)
+    raise NOT_STRING_CLASS_ERROR if !@name.is_a?(String)
+    raise NOT_ZERO_LENGTH_NAME_ERROR if @name.length == 0
+    raise STATION_EXISTS_ERROR if Station.find(@name)
   end
 
 end

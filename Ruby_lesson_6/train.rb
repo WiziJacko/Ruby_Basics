@@ -8,7 +8,9 @@ class Train
 
   attr_reader :speed, :carriages, :number, :type, :route
 
-  NUMBER_FORMAT = /^([а-я]|\d){3}-?([а-я]|\d){2}$/i
+  NUMBER_FORMAT = /^[а-яё\d]{3}-?[а-яё\d]{2}$/i
+  TRAIN_EXISTS_ERROR = "Поезд с таким номером уже существует"
+  FORMAT_ERROR = "Номер не соответствует формату"
 
   @@instances = {}
   
@@ -102,11 +104,15 @@ class Train
     @current_station -= 1
   end
 
+  def to_s
+    number
+  end
+
   protected
 
   def validate!
-    raise "Номер не соответствует формату" if @number !~ NUMBER_FORMAT
-    raise "Поезд с таким номером уже существует" if Train.find(@number)
+    raise FORMAT_ERROR if @number !~ NUMBER_FORMAT
+    raise TRAIN_EXISTS_ERROR if Train.find(@number)
   end
 
 end

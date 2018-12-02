@@ -112,6 +112,10 @@ class Main
     |   Введите "4", если хотите вернуться в главное меню      |
     ------------------------------------------------------------
   CHANGE_STATIONS
+
+  TITLE_TRAIN = 'Выберите поезд: '
+  TITLE_STATION = 'Выберит станцию: '
+  TITLE_ROUTE = 'Выберите маршрут: '
   # инициации создания экземпляра класса
   def initialize
     @trains = []
@@ -135,7 +139,7 @@ class Main
       when 2 then station_view
       when 3 then route_view
       when 4 then all_trains_view
-      when 5 then alL_stations_view
+      when 5 then all_stations_view
       when 6 then all_routes_view
       when 7 then break
       else not_correct_input
@@ -146,16 +150,14 @@ class Main
   # экран создания поезда
   def train_view
     train_type = get_train_type
-    begin
-      puts TRAIN_NUMBER_MENU
-      train_number = gets.chomp
-      @trains << train_type.new(train_number)
-      puts "Создан поезд. Номер: #{train_number}, Тип: #{@trains.last.type}"
-      train_actions(@trains.last)
-    rescue RuntimeError => e
-      puts e.message
-      retry
-    end
+    puts TRAIN_NUMBER_MENU
+    train_number = gets.chomp
+    @trains << train_type.new(train_number)
+    puts "Создан поезд. Номер: #{train_number}, Тип: #{@trains.last.type}"
+    train_actions(@trains.last)
+  rescue RuntimeError => e
+    puts e.message
+    retry
   end
   # метод выбора типа
   def get_train_type
@@ -166,13 +168,10 @@ class Main
     when 1 then CargoTrain
     when 2 then PassengerTrain
     end
-  rescue RuntimeError => e
-    puts e.message
-    retry
   end
   # метод с действиями с поездом
   def train_actions(train)
-    return if train.nil?
+    return not_correct_input if train.nil?
     loop do
       current_train(train)
       puts TRAIN_ACTIONS_MENU
@@ -271,15 +270,16 @@ class Main
   def route_view
     return puts 'Сначала создайте как минимум 2 станции' if @stations.size < 2
     puts '-- Выбор станции отправления --'
-    station_departure = select_station(@stations)
+    station_departure = select_from_collection(TITLE_STATION, @stations)
     puts '-- Выбор станции прибытия --'
-    station_arrival = select_station(@stations)
+    station_arrival = select_from_collection(TITLE_STATION, @stations)
     return not_correct_input if station_departure.nil? || station_arrival.nil?
-    return puts 'Станции прибытия и отправления не могут совпадать!' if station_departure == station_arrival
-
     @routes << Route.new(station_departure, station_arrival)
     puts "Создан маршрут: #{station_departure.name} -> #{station_arrival.name}"
     route_actions(@routes.last)
+  rescue RuntimeError => e
+    puts e.message
+    retry
   end
   # Метод по добавлению станции в маршрут
   def route_actions(route)
@@ -299,7 +299,7 @@ class Main
   end
   # Метод по добавлению стании в маршрут
   def add_station(route)
-    station_for_include = select_station(@stations)
+    station_for_include = select_from_collection(TITLE_STATION, @stations)
     return not_correct_input if station_for_include.nil?
     if route.add_station(station_for_include).nil?
       puts 'Нельзя добавить станцию в маршрут'
@@ -307,25 +307,27 @@ class Main
   end
   # Метод по исключению станции из маршрута
   def delete_station(route)
-    station_for_exclude = select_station(route.stations)
+    station_for_exclude = select_from_collection(TITLE_STATION, route.stations)
     if route.delete_station(station_for_exclude).nil?
       puts 'Нельзя исключить станцию из маршрута'
     end
   end
   # Экран вывода всех поездов
   def all_trains_view
+    return puts "Нет созданных поездов" if @trains.size == 0
     puts 'Список созданных поездов: '
     @trains.each { |train| puts " #{train.number}. Тип: #{train.type}. Количество вагонов: #{train.carriages.count}" }
     puts CHOOSE_TRAIN_MENU
     train_answer = gets.to_i
     case train_answer
-    when 1 then train_actions(choose_train)
+    when 1 then train_actions(select_from_collection(TITLE_TRAIN, @trains))
     when 2 then return
     else not_correct_input
     end
   end
   # Экран вывода всех станций
-  def alL_stations_view
+  def all_stations_view
+    return puts 'Нет созданных станций' if @stations.size == 0
     puts 'Список созданных станция: '
     @stations.each do |station| 
       puts " #{station.name}"
@@ -334,6 +336,7 @@ class Main
   end
   # Экран вывода всех маршрутов
   def all_routes_view
+    return puts "Нет созданных маршрутов" if @routes.size == 0
     puts 'Список созданных маршрутов: '
     @routes.each do |route| 
       puts "Маршрут:  #{route.name}"
@@ -342,17 +345,19 @@ class Main
     puts CHOOSE_ROUTE_MENU
     route_answer = gets.to_i
     case route_answer
-    when 1 then route_actions(choose_route)
+    when 1 then route_actions(select_from_collection(TITLE_ROUTE, @routes))
     when 2 then return
     else not_correct_input
     end
   end
-  # метод выбора станции по введеному пользователем индексу
-  def select_station(stations)
-    puts 'Выберите станцию: '
-    stations.each_with_index { |station, index| puts " введите '#{index}', если: #{station.name}" }
-    station_index = gets.to_i
-    stations[station_index]
+  # Универсальный метод выбора экземпляра класса для работы по переданному массиву экземпляров
+  def select_from_collection(title, collection)
+    puts title
+    collection.each_with_index { |item, index| puts " введите '#{index + 1}', если: #{item}"}
+    selected_index = gets.to_i - 1
+    # возвращаю nil, если пользователь ввел 0 или меньше, так как индекс будет -1 или ниже и будет выбираться элемент с конца массива
+    return if selected_index < 0
+    collection[selected_index]
   end
   # некорректный ввод
   def not_correct_input
@@ -361,26 +366,6 @@ class Main
   # метод по всем станциям
   def show_stations(route)
     route.show_stations
-  end
-  # метод выбора поезда
-  def choose_train
-    puts 'Выберите поезд: '
-    @trains.each_with_index { |train, index| puts " введите '#{index + 1}, если: #{train.number}" }
-    puts "Или '0' для выхода в главное меню"
-    train_index = gets.to_i - 1
-    return if train_index == -1
-    return not_correct_input if @trains[train_index].nil?
-    @trains[train_index]
-  end
-  # метод выбора маршрута
-  def choose_route
-    puts 'Выберите маршрут: '
-    @routes.each_with_index { |route, index| puts " введите '#{index + 1}, если: #{route.name}" }
-    puts "Или '0' для выхода в главное меню"
-    route_index = gets.to_i - 1
-    return if route_index == -1
-    return not_correct_input if @routes[route_index].nil?
-    @routes[route_index]
   end
   # метод указывающий текущий поезд
   def current_route(route)
