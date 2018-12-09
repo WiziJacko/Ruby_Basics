@@ -8,15 +8,19 @@ class Train
 
   attr_reader :speed, :carriages, :number, :type, :route
 
-  @@instances = []
+  NUMBER_FORMAT = /^[а-яё\d]{3}-?[а-яё\d]{2}$/i
+  TRAIN_EXISTS_ERROR = "Поезд с таким номером уже существует"
+  FORMAT_ERROR = "Номер не соответствует формату"
+
+  @@instances = {}
   
   class << self
-    def all_instances
-      @@instances.each { |instance| puts instance }
+    def all
+      @@instances.values
     end
 
     def find(number)
-      @@instances.bsearch { |instance| instance.number == number }
+      @@instances[number]
     end
   end
 
@@ -25,8 +29,16 @@ class Train
     @type = type
     @speed = 0
     @carriages = []
-    @@instances << self
+    validate!
+    @@instances[number] = self
     register_instance
+  end
+
+  def valid?
+    validate!
+    true
+  rescue
+    false
   end
 
   def speed_up(value)
@@ -90,6 +102,21 @@ class Train
     current_station.train_out(self)
     previous_station.train_in(self)
     @current_station -= 1
+  end
+
+  def to_s
+    number
+  end
+
+  def each_carriage
+    carriages.each { |carriage| yield(carriage) }
+  end
+
+  protected
+
+  def validate!
+    raise FORMAT_ERROR if @number !~ NUMBER_FORMAT
+    raise TRAIN_EXISTS_ERROR if Train.find(@number)
   end
 
 end

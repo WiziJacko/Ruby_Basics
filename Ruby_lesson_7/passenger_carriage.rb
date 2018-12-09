@@ -12,14 +12,12 @@ class PassengerCarriage < Carriage
   end
   
   def take_place
-    return if available_places.nil?
+    return if available_places.zero?
     @occupied_places += 1
   end
 
   def available_places
     available_places = @all_places - @occupied_places
-    return if available_places == 0
-    available_places
   end
   
 end

@@ -17,9 +17,9 @@ class Main
     |   Введите "2", если хотите создать станцию               |
     |   Введите "3", если хотите создать маршрут               |
     |                                                          |
-    |   Введите "4", если хотите увидеть все поезда            |
+    |   Введите "4", если хотите выбрать упраление поездами    |
     |   Введите "5", если хотите увидеть все станции           |
-    |   Введите "6", если хотите увидеть все маршруты          |
+    |   Введите "6", если хотите выбрать управление маршрутами |
     |                                                          |
     |   Введите "7", если хотите выйти из программы            |
     ------------------------------------------------------------
@@ -149,11 +149,10 @@ class Main
     train_number = gets.chomp
     train_type = get_train_type
     if train_number.nil? || train_type.nil?
-      not_correct_input
-    else
+      return not_correct_input
+    end
       @trains << train_type.new(train_number)
       train_actions(@trains.last)
-    end
   end
   # метод выбора типа
   def get_train_type
@@ -166,6 +165,7 @@ class Main
   end
   # метод с действиями с поездом
   def train_actions(train)
+    return if train.nil?
     loop do
       current_train(train)
       puts TRAIN_ACTIONS_MENU
@@ -273,6 +273,7 @@ class Main
   end
   # Метод по добавлению станции в маршрут
   def route_actions(route)
+    return if route.nil?
     loop do
       puts current_route(route)
       puts CHANGE_STATIONS_MENU
@@ -354,16 +355,20 @@ class Main
   # метод выбора поезда
   def choose_train
     puts 'Выберите поезд: '
-    @trains.each_with_index { |train, index| puts " введите '#{index}, если: #{train.number}" }
-    train_index = gets.to_i
+    @trains.each_with_index { |train, index| puts " введите '#{index + 1}, если: #{train.number}" }
+    puts "Или '0' для выхода в главное меню"
+    train_index = gets.to_i - 1
+    return if train_index == -1
     return not_correct_input if @trains[train_index].nil?
     @trains[train_index]
   end
   # метод выбора маршрута
   def choose_route
     puts 'Выберите маршрут: '
-    @routes.each_with_index { |route, index| puts " введите '#{index}, если: #{route.name}" }
-    route_index = gets.to_i
+    @routes.each_with_index { |route, index| puts " введите '#{index + 1}, если: #{route.name}" }
+    puts "Или '0' для выхода в главное меню"
+    route_index = gets.to_i - 1
+    return if route_index == -1
     return not_correct_input if @routes[route_index].nil?
     @routes[route_index]
   end

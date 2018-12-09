@@ -150,6 +150,7 @@ class Main
     end
     puts 'Спасибо за использование программы <ЖелДор>.'
   end 
+  # ------------------------------------------------ Методы по работе с поездом ----------------------------------------------
   # экран создания поезда
   def train_view
     train_type = get_train_type
@@ -213,36 +214,6 @@ class Main
     train.unhook_carriage(carriage_answer)
     puts "Вагон #{carriage_answer} отцеплен от поезда #{train.number}"
   end
-  # метод заполнения вагона
-  def fill_carriage(train)
-    return puts "Сначала прицепите хотя бы 1 вагон" if train.carriages.empty?
-    current_carriage = select_from_collection(TITLE_CARRIAGE, train.carriages)
-    puts current_carriage
-    case current_carriage.is_a?(CargoCarriage)
-    when true
-      return puts "У выбранного вагона весь объем заполнен" if current_carriage.available_volume.nil?
-      puts "Для заполнения доступно: #{current_carriage.available_volume}. Какой объем вы хотите заполнить?"
-      volume = gets.to_i
-      current_carriage.take_up_volume(volume)
-    when false
-      return puts "У выбранного поезда все места заняты" if current_carriage.available_places.nil?
-      puts "Свободные места: #{current_carriage.available_places}. Сколько мест вы хотите занять?"
-      places = gets.to_i
-      places.times do 
-        current_carriage.take_place
-        break if current_carriage.available_places.nil?
-      end
-    end
-  rescue RuntimeError => e
-    puts e.message
-  end
-  # метод показывающий все вагоны
-  def show_all_carriages(train)
-    train.carriages.each do |carriage|
-      puts "Вагон: #{carriage}. Общий объем: #{carriage.all_volume}. Доступный объем: #{carriage.available_volume}." if train.is_a?(CargoTrain) 
-      puts "Вагон: #{carriage}. Всего мест: #{carriage.all_places}. Доступные места: #{carriage.available_places}." if train.is_a?(PassengerTrain) 
-    end
-  end
   # метод для задания маршрута
   def train_get_route(train)
     if @routes.empty?
@@ -292,6 +263,53 @@ class Main
       puts "Поезд прибыл на станцию #{train.current_station.name}"
     end
   end
+  # метод указывающий текущий поезд
+  def current_train(train)
+    puts " -------------------------------------- "
+    puts " -- Выбранный поезд: #{train.number} -- "
+  end
+  # Экран вывода всех поездов
+  def all_trains_view
+    return puts "Нет созданных поездов" if @trains.size == 0
+    puts 'Список созданных поездов: '
+    @trains.each { |train| puts " #{train.number}. Тип: #{train.type}. Количество вагонов: #{train.carriages.count}" }
+    puts CHOOSE_TRAIN_MENU
+    train_answer = gets.to_i
+    case train_answer
+    when 1 then train_actions(select_from_collection(TITLE_TRAIN, @trains))
+    when 2 then return
+    else not_correct_input
+    end
+  end
+  # метод показывающий все вагоны
+  def show_all_carriages(space='', train)
+    return puts "Нет прицепленных вагонов." if train.carriages.empty?
+    train.each_carriage { |carriage| puts "#{space}Вагон: #{carriage}. Свободный объем: #{carriage.available_volume}. Занятый объем: #{carriage.occupied_volume}." } if train.is_a?(CargoTrain)
+    train.each_carriage { |carriage| puts "#{space}Вагон: #{carriage}. Свободных мест: #{carriage.available_places}. Занятые места: #{carriage.occupied_places}." } if train.is_a?(PassengerTrain)
+  end
+  # ------------------------------------------------ Методы по работе с вагонами ----------------------------------------------
+  # метод заполнения вагона
+  def fill_carriage(train)
+    return puts "Сначала прицепите хотя бы 1 вагон" if train.carriages.empty?
+    current_carriage = select_from_collection(TITLE_CARRIAGE, train.carriages)
+    puts current_carriage
+    case current_carriage.is_a?(CargoCarriage)
+    when true
+      return puts "У выбранного вагона весь объем заполнен" if current_carriage.available_volume.zero?
+      puts "Для заполнения доступно: #{current_carriage.available_volume}. Какой объем вы хотите заполнить?"
+      volume = gets.to_i
+      current_carriage.take_up_volume(volume)
+    when false
+      return puts "У Выбранныйного поезда все места заняты" if current_carriage.available_places.zero?
+      puts "Свободные места: #{current_carriage.available_places}. Сколько мест вы хотите занять?"
+      places = gets.to_i
+      places.times do 
+        current_carriage.take_place
+        break if current_carriage.available_places.zero?
+      end
+    end
+  end
+  # ------------------------------------------------ Методы по работе со станцией ----------------------------------------------
   # Экран создания станции
   def station_view
     puts STATION_MENU
@@ -301,6 +319,20 @@ class Main
     puts e.message
     retry
   end
+  # Экран вывода всех станций
+  def all_stations_view
+    return puts 'Нет созданных станций' if @stations.empty?
+    @stations.each { |station| trains_on_station(station) }
+  end
+  # Метод, показывающий поезда на станции
+  def trains_on_station(station)
+    puts "Станция: #{station.name}. Поезда на станции:"
+    station.each_train do |train| 
+      puts "- Поезд #{train.number}, тип: #{train.type}, кол-во вагонов: #{train.carriages.size}"
+      show_all_carriages(' -- ', train)
+    end
+  end
+  # ------------------------------------------------ Методы по работе с маршрутом ----------------------------------------------
   # Экран создания маршрута
   def route_view
     return puts 'Сначала создайте как минимум 2 станции' if @stations.size < 2
@@ -347,28 +379,6 @@ class Main
       puts 'Нельзя исключить станцию из маршрута'
     end
   end
-  # Экран вывода всех поездов
-  def all_trains_view
-    return puts "Нет созданных поездов" if @trains.size == 0
-    puts 'Список созданных поездов: '
-    @trains.each { |train| puts " #{train.number}. Тип: #{train.type}. Количество вагонов: #{train.carriages.count}" }
-    puts CHOOSE_TRAIN_MENU
-    train_answer = gets.to_i
-    case train_answer
-    when 1 then train_actions(select_from_collection(TITLE_TRAIN, @trains))
-    when 2 then return
-    else not_correct_input
-    end
-  end
-  # Экран вывода всех станций
-  def all_stations_view
-    return puts 'Нет созданных станций' if @stations.size == 0
-    puts 'Список созданных станция: '
-    @stations.each do |station| 
-      puts " #{station.name}"
-      station.trains.each { |train| puts "  поезд: #{train.number}" }
-    end
-  end
   # Экран вывода всех маршрутов
   def all_routes_view
     return puts "Нет созданных маршрутов" if @routes.size == 0
@@ -385,6 +395,16 @@ class Main
     else not_correct_input
     end
   end
+  # метод указывающий текущий маршрут
+  def current_route(route)
+    puts " -------------------------------------- "
+    puts " -- Выбранный маршрут: #{route.name} -- "
+  end
+  # метод по всем станциям маршрута
+  def show_stations(route)
+    route.show_stations
+  end
+  # ------------------------------------------------ Универсальные методы ----------------------------------------------
   # Универсальный метод выбора экземпляра класса для работы по переданному массиву экземпляров
   def select_from_collection(title, collection)
     puts title
@@ -398,19 +418,4 @@ class Main
   def not_correct_input
     puts "!! Некорректный ввод !!"
   end
-  # метод по всем станциям
-  def show_stations(route)
-    route.show_stations
-  end
-  # метод указывающий текущий поезд
-  def current_route(route)
-    puts " -------------------------------------- "
-    puts " -- Выбранный маршрут: #{route.name} -- "
-  end
-  # метод указывающий текущий маршрут
-  def current_train(train)
-    puts " -------------------------------------- "
-    puts " -- Выбранный поезд: #{train.number} -- "
-  end
-
 end

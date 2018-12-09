@@ -1,10 +1,22 @@
+require_relative 'instance_counter'
+
 class Station
 
+  include InstanceCounter
+
   attr_reader :name, :trains
+
+  @@instances = []
+
+  def self.all_instances
+    @@instances.each { |instance| puts instance }
+  end
 
   def initialize(name)
     @name = name
     @trains = []
+    @@instances << self
+    register_instance
   end
 
   def train_in(train)
