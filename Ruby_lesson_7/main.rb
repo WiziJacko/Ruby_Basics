@@ -115,6 +115,20 @@ class Main
     ------------------------------------------------------------
   CHANGE_STATIONS
 
+  CREATE_CARGO_CARRIAGE_MENU = <<~CREATE_CARGO_CARRIAGE
+    ------------------------------------------------------------
+    |  Введите общий объем вагона                              |
+    |  введите '-1' если хотите создать стандартный (100 куб.м)|
+    ------------------------------------------------------------
+  CREATE_CARGO_CARRIAGE
+
+  CREATE_PASSENGER_CARRIAGE_MENU = <<~CREATE_PASSENGER_CARRIAGE
+    ------------------------------------------------------------
+    |  Введите количество мест вагона                          |
+    |  введите '-1' если хотите создать стандартный (10 мест)  |
+    ------------------------------------------------------------
+  CREATE_PASSENGER_CARRIAGE
+
   TITLE_TRAIN = 'Выберите поезд: '
   TITLE_STATION = 'Выберит станцию: '
   TITLE_ROUTE = 'Выберите маршрут: '
@@ -194,13 +208,11 @@ class Main
   end
   # метод, вызывающий меню добавления вагона
   def hook_carriage(train)
-    carriage = if train.is_a?(CargoTrain)
-                 CargoCarriage.new
-               elsif train.is_a?(PassengerTrain)
-                 PassengerCarriage.new
-               end
-    train.hook_carriage(carriage)
-    puts "Вагон #{carriage} добавлен к поезду #{train.number}"
+    carriage = create_carriage(train)
+    if !carriage.nil?
+      train.hook_carriage(carriage)
+      puts "Вагон #{carriage} добавлен к поезду #{train.number}"
+    end
   end
   # метод, вызывающий меню отцепления вагона
   def unhook_carriage(train)
@@ -284,30 +296,48 @@ class Main
   # метод показывающий все вагоны
   def show_all_carriages(space='', train)
     return puts "Нет прицепленных вагонов." if train.carriages.empty?
-    train.each_carriage { |carriage| puts "#{space}Вагон: #{carriage}. Свободный объем: #{carriage.available_volume}. Занятый объем: #{carriage.occupied_volume}." } if train.is_a?(CargoTrain)
-    train.each_carriage { |carriage| puts "#{space}Вагон: #{carriage}. Свободных мест: #{carriage.available_places}. Занятые места: #{carriage.occupied_places}." } if train.is_a?(PassengerTrain)
+    train.each_carriage { |carriage| puts "#{space}Вагон: #{carriage}. Свободный объем: #{carriage.available_spaces}. Занятый объем: #{carriage.occupied_spaces}." } if train.is_a?(CargoTrain)
+    train.each_carriage { |carriage| puts "#{space}Вагон: #{carriage}. Свободных мест: #{carriage.available_spaces}. Занятые места: #{carriage.occupied_spaces}." } if train.is_a?(PassengerTrain)
   end
   # ------------------------------------------------ Методы по работе с вагонами ----------------------------------------------
+  # метод создания вагона
+  def create_carriage(train)
+    puts CREATE_CARGO_CARRIAGE_MENU if train.is_a?(CargoTrain)
+    puts CREATE_PASSENGER_CARRIAGE_MENU if train.is_a?(PassengerTrain)
+    space = gets.to_i
+    if space == 0 || space < -1
+      puts not_correct_input
+    elsif space == -1
+      carriage = CargoCarriage.new if train.is_a?(CargoTrain)
+      carriage = PassengerCarriage.new if train.is_a?(PassengerTrain)
+    else
+      carriage = CargoCarriage.new(space + 0.0) if train.is_a?(CargoTrain)
+      carriage = PassengerCarriage.new(space + 0.0) if train.is_a?(PassengerTrain)
+    end
+    carriage
+  end
   # метод заполнения вагона
   def fill_carriage(train)
     return puts "Сначала прицепите хотя бы 1 вагон" if train.carriages.empty?
     current_carriage = select_from_collection(TITLE_CARRIAGE, train.carriages)
-    puts current_carriage
-    case current_carriage.is_a?(CargoCarriage)
-    when true
-      return puts "У выбранного вагона весь объем заполнен" if current_carriage.available_volume.zero?
-      puts "Для заполнения доступно: #{current_carriage.available_volume}. Какой объем вы хотите заполнить?"
-      volume = gets.to_i
-      current_carriage.take_up_volume(volume)
-    when false
-      return puts "У Выбранныйного поезда все места заняты" if current_carriage.available_places.zero?
-      puts "Свободные места: #{current_carriage.available_places}. Сколько мест вы хотите занять?"
-      places = gets.to_i
-      places.times do 
-        current_carriage.take_place
-        break if current_carriage.available_places.zero?
-      end
+    case current_carriage
+    when CargoCarriage then fill_cargo_carriage(current_carriage)
+    when PassengerCarriage then fill_passenger_carriage(current_carriage)
     end
+  end
+  # метод заполнения грузового вагона
+  def fill_cargo_carriage(carriage)
+    return puts "У выбранного вагона весь объем заполнен" if carriage.available_spaces.zero?
+    puts "Для заполнения доступно: #{carriage.available_spaces}. Какой объем вы хотите заполнить?"
+    volume = gets.to_i
+    carriage.take_up_space(volume)
+  end
+  # метод заполнения пассажирского вагона
+  def fill_passenger_carriage(carriage)
+    return puts "У Выбранныйного поезда все места заняты" if carriage.available_spaces.zero?
+    puts "Свободные места: #{carriage.available_spaces}. Сколько мест вы хотите занять?"
+    places = gets.to_i
+    carriage.take_up_space(places)
   end
   # ------------------------------------------------ Методы по работе со станцией ----------------------------------------------
   # Экран создания станции
