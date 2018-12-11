@@ -4,6 +4,9 @@ class Carriage
 
   include Company
 
+  ZERO_ERROR = 'Нет свободного пространства'
+  OVER_SPACE_ERROR = 'Доступно меньше пространства'
+
   attr_reader :attached, :all_space, :occupied_spaces
 
   def initialize(space)
@@ -25,8 +28,8 @@ class Carriage
   end
 
   def take_up_space(space)
-    return if available_spaces.zero?
-    return @occupied_spaces = @all_spaces if available_spaces < space
+    raise ZERO_ERROR if available_spaces.zero?
+    raise OVER_SPACE_ERROR if available_spaces < space
     @occupied_spaces += space
   end
 

@@ -294,10 +294,22 @@ class Main
     end
   end
   # метод показывающий все вагоны
-  def show_all_carriages(space='', train)
+  def show_all_carriages(train, space='')
     return puts "Нет прицепленных вагонов." if train.carriages.empty?
-    train.each_carriage { |carriage| puts "#{space}Вагон: #{carriage}. Свободный объем: #{carriage.available_spaces}. Занятый объем: #{carriage.occupied_spaces}." } if train.is_a?(CargoTrain)
-    train.each_carriage { |carriage| puts "#{space}Вагон: #{carriage}. Свободных мест: #{carriage.available_spaces}. Занятые места: #{carriage.occupied_spaces}." } if train.is_a?(PassengerTrain)
+    show_cargo_carriages(train, space) if train.is_a?(CargoTrain)
+    show_passenger_carriages(train, space) if train.is_a?(PassengerTrain)
+  end
+  # метод показывающий все грузовые вагоны
+  def show_cargo_carriages(train, space)
+    train.each_carriage do |carriage| 
+      puts "#{space}Вагон: #{carriage}. Свободный объем: #{carriage.available_spaces}. Занятый объем: #{carriage.occupied_spaces}."
+    end
+  end
+  # метод показывающий все пассажирские вагоны
+  def show_passenger_carriages(train, space)
+    train.each_carriage do |carriage| 
+      puts "#{space}Вагон: #{carriage}. Свободных мест: #{carriage.available_spaces}. Занятые места: #{carriage.occupied_spaces}."
+    end
   end
   # ------------------------------------------------ Методы по работе с вагонами ----------------------------------------------
   # метод создания вагона
@@ -305,21 +317,20 @@ class Main
     puts CREATE_CARGO_CARRIAGE_MENU if train.is_a?(CargoTrain)
     puts CREATE_PASSENGER_CARRIAGE_MENU if train.is_a?(PassengerTrain)
     space = gets.to_i
+
     if space == 0 || space < -1
-      puts not_correct_input
-    elsif space == -1
-      carriage = CargoCarriage.new if train.is_a?(CargoTrain)
-      carriage = PassengerCarriage.new if train.is_a?(PassengerTrain)
-    else
-      carriage = CargoCarriage.new(space + 0.0) if train.is_a?(CargoTrain)
-      carriage = PassengerCarriage.new(space + 0.0) if train.is_a?(PassengerTrain)
+      return puts not_correct_input
     end
-    carriage
+
+    carriage_type = train.is_a?(CargoTrain) ? CargoCarriage : PassengerCarriage
+    return carriage_type.new if space == -1
+    carriage_type.new(space)
   end
   # метод заполнения вагона
   def fill_carriage(train)
     return puts "Сначала прицепите хотя бы 1 вагон" if train.carriages.empty?
     current_carriage = select_from_collection(TITLE_CARRIAGE, train.carriages)
+    return puts 'Вагон полностью заполнен' if current_carriage.available_spaces.zero?
     case current_carriage
     when CargoCarriage then fill_cargo_carriage(current_carriage)
     when PassengerCarriage then fill_passenger_carriage(current_carriage)
@@ -327,17 +338,16 @@ class Main
   end
   # метод заполнения грузового вагона
   def fill_cargo_carriage(carriage)
-    return puts "У выбранного вагона весь объем заполнен" if carriage.available_spaces.zero?
     puts "Для заполнения доступно: #{carriage.available_spaces}. Какой объем вы хотите заполнить?"
     volume = gets.to_i
     carriage.take_up_space(volume)
+  rescue RuntimeError => e
+    puts e.message
+    retry
   end
   # метод заполнения пассажирского вагона
   def fill_passenger_carriage(carriage)
-    return puts "У Выбранныйного поезда все места заняты" if carriage.available_spaces.zero?
-    puts "Свободные места: #{carriage.available_spaces}. Сколько мест вы хотите занять?"
-    places = gets.to_i
-    carriage.take_up_space(places)
+    carriage.take_up_space
   end
   # ------------------------------------------------ Методы по работе со станцией ----------------------------------------------
   # Экран создания станции
@@ -359,7 +369,7 @@ class Main
     puts "Станция: #{station.name}. Поезда на станции:"
     station.each_train do |train| 
       puts "- Поезд #{train.number}, тип: #{train.type}, кол-во вагонов: #{train.carriages.size}"
-      show_all_carriages(' -- ', train)
+      show_all_carriages(train, ' -- ')
     end
   end
   # ------------------------------------------------ Методы по работе с маршрутом ----------------------------------------------
